@@ -12,7 +12,7 @@
 <section class="content content-custom no-print">
     <br>
     @if(auth()->user()->can('dashboard.data'))
-        @if($is_admin)
+        {{-- @if($is_admin)
         	<div class="row">
                 <div class="col-md-4 col-xs-12">
                     @if(count($all_locations) > 1)
@@ -167,8 +167,72 @@
                     {!! $widget !!}
                 @endforeach
             @endif
-        @endif 
+        @endif  --}}
+
         <!-- end is_admin check -->
+
+        @if(auth()->user()->can('access_pending_shipments_only') || auth()->user()->can('access_shipping') || auth()->user()->can('access_own_shipping') )
+            @component('components.widget', ['class' => 'box-warning'])
+              @slot('icon')
+                  <i class="fas fa-list-alt text-yellow fa-lg" aria-hidden="true"></i>
+              @endslot
+              @slot('title')
+                  @lang('lang_v1.pending_shipments')
+              @endslot
+                <div class="row">
+                    @if(count($all_locations) > 1)
+                        <div class="col-md-4 col-sm-6 col-md-offset-8 mb-10">
+                            {!! Form::select('pending_shipments_location', $all_locations, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.select_location'), 'id' => 'pending_shipments_location']); !!}
+                        </div>
+                    @endif
+                    <div class="col-md-12">  
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped ajax_view" id="shipments_table">
+                                <thead>
+                                    <tr>
+                                        <th>@lang('messages.action')</th>
+                                        <th>@lang('messages.date')</th>
+                                        <th>@lang('sale.invoice_no')</th>
+                                        <th>@lang('sale.customer_name')</th>
+                                        <th>@lang('lang_v1.contact_no')</th>
+                                        <th>@lang('sale.location')</th>
+                                        <th>@lang('lang_v1.shipping_status')</th>
+                                        @if(!empty($custom_labels['shipping']['custom_field_1']))
+                                            <th>
+                                                {{$custom_labels['shipping']['custom_field_1']}}
+                                            </th>
+                                        @endif
+                                        @if(!empty($custom_labels['shipping']['custom_field_2']))
+                                            <th>
+                                                {{$custom_labels['shipping']['custom_field_2']}}
+                                            </th>
+                                        @endif
+                                        @if(!empty($custom_labels['shipping']['custom_field_3']))
+                                            <th>
+                                                {{$custom_labels['shipping']['custom_field_3']}}
+                                            </th>
+                                        @endif
+                                        @if(!empty($custom_labels['shipping']['custom_field_4']))
+                                            <th>
+                                                {{$custom_labels['shipping']['custom_field_4']}}
+                                            </th>
+                                        @endif
+                                        @if(!empty($custom_labels['shipping']['custom_field_5']))
+                                            <th>
+                                                {{$custom_labels['shipping']['custom_field_5']}}
+                                            </th>
+                                        @endif
+                                        <th>@lang('sale.payment_status')</th>
+                                        <th>@lang('restaurant.service_staff')</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div> 
+                </div>
+            @endcomponent
+        @endif
+        
          @if(auth()->user()->can('sell.view') || auth()->user()->can('direct_sell.view'))
             @if(!empty($all_locations))
               	<!-- sales chart start -->
@@ -442,69 +506,9 @@
             </div>
         @endif
 
-        @if(auth()->user()->can('access_pending_shipments_only') || auth()->user()->can('access_shipping') || auth()->user()->can('access_own_shipping') )
-            @component('components.widget', ['class' => 'box-warning'])
-              @slot('icon')
-                  <i class="fas fa-list-alt text-yellow fa-lg" aria-hidden="true"></i>
-              @endslot
-              @slot('title')
-                  @lang('lang_v1.pending_shipments')
-              @endslot
-                <div class="row">
-                    @if(count($all_locations) > 1)
-                        <div class="col-md-4 col-sm-6 col-md-offset-8 mb-10">
-                            {!! Form::select('pending_shipments_location', $all_locations, null, ['class' => 'form-control select2', 'placeholder' => __('lang_v1.select_location'), 'id' => 'pending_shipments_location']); !!}
-                        </div>
-                    @endif
-                    <div class="col-md-12">  
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped ajax_view" id="shipments_table">
-                                <thead>
-                                    <tr>
-                                        <th>@lang('messages.action')</th>
-                                        <th>@lang('messages.date')</th>
-                                        <th>@lang('sale.invoice_no')</th>
-                                        <th>@lang('sale.customer_name')</th>
-                                        <th>@lang('lang_v1.contact_no')</th>
-                                        <th>@lang('sale.location')</th>
-                                        <th>@lang('lang_v1.shipping_status')</th>
-                                        @if(!empty($custom_labels['shipping']['custom_field_1']))
-                                            <th>
-                                                {{$custom_labels['shipping']['custom_field_1']}}
-                                            </th>
-                                        @endif
-                                        @if(!empty($custom_labels['shipping']['custom_field_2']))
-                                            <th>
-                                                {{$custom_labels['shipping']['custom_field_2']}}
-                                            </th>
-                                        @endif
-                                        @if(!empty($custom_labels['shipping']['custom_field_3']))
-                                            <th>
-                                                {{$custom_labels['shipping']['custom_field_3']}}
-                                            </th>
-                                        @endif
-                                        @if(!empty($custom_labels['shipping']['custom_field_4']))
-                                            <th>
-                                                {{$custom_labels['shipping']['custom_field_4']}}
-                                            </th>
-                                        @endif
-                                        @if(!empty($custom_labels['shipping']['custom_field_5']))
-                                            <th>
-                                                {{$custom_labels['shipping']['custom_field_5']}}
-                                            </th>
-                                        @endif
-                                        <th>@lang('sale.payment_status')</th>
-                                        <th>@lang('restaurant.service_staff')</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                    </div> 
-                </div>
-            @endcomponent
-        @endif
+        
 
-        @if(auth()->user()->can('account.access') && config('constants.show_payments_recovered_today') == true)
+        {{-- @if(auth()->user()->can('account.access') && config('constants.show_payments_recovered_today') == true)
             @component('components.widget', ['class' => 'box-warning'])
               @slot('icon')
                   <i class="fas fa-money-bill-alt text-yellow fa-lg" aria-hidden="true"></i>
@@ -536,7 +540,7 @@
                     </table>
                 </div>
             @endcomponent
-        @endif
+        @endif --}}
 
         @if(!empty($widgets['after_dashboard_reports']))
           @foreach($widgets['after_dashboard_reports'] as $widget)

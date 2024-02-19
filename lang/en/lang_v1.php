@@ -1363,7 +1363,7 @@ return [
     'payment_link_help_text' => 'By enabling users can pay invoice using payment link',
     'invoice_payment' => 'Invoice Payment',
     'payment_for_invoice_no' => 'Payment for invoice number',
-    'pending_shipments' => 'Pending Shipments',
+    'pending_shipments' => 'Recent Product Claimed',
     'sources' => 'Sources',
     'stripe_secret_key' => 'Stripe secret key',
     'stripe_public_key' => 'Stripe public key',

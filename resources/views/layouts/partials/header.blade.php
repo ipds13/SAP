@@ -36,9 +36,9 @@
           </button>
           <ul class="dropdown-menu">
             @if(config('app.env') != 'demo')
-              <li><a href="{{route('calendar')}}">
+              {{-- <li><a href="{{route('calendar')}}">
                   <i class="fas fa-calendar-alt" aria-hidden="true"></i> @lang('lang_v1.calendar')
-              </a></li>
+              </a></li> --}}
             @endif
             @if(Module::has('Essentials'))
               <li><a href="#" class="btn-modal" data-href="{{action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'create'])}}" data-container="#task_modal">
@@ -53,11 +53,11 @@
             @endif
           </ul>
         </div>
-        <button id="btnCalculator" title="@lang('lang_v1.calculator')" type="button" class="btn btn-success btn-flat pull-left m-8 btn-sm mt-10 popover-default hidden-xs" data-toggle="popover" data-trigger="click" data-content='@include("layouts.partials.calculator")' data-html="true" data-placement="bottom">
+        {{-- <button id="btnCalculator" title="@lang('lang_v1.calculator')" type="button" class="btn btn-success btn-flat pull-left m-8 btn-sm mt-10 popover-default hidden-xs" data-toggle="popover" data-trigger="click" data-content='@include("layouts.partials.calculator")' data-html="true" data-placement="bottom">
             <strong><i class="fa fa-calculator fa-lg" aria-hidden="true"></i></strong>
-        </button>
+        </button> --}}
         
-        @if($request->segment(1) == 'pos')
+        {{-- @if($request->segment(1) == 'pos')
           @can('view_cash_register')
           <button type="button" id="register_details" title="{{ __('cash_register.register_details') }}" data-toggle="tooltip" data-placement="bottom" class="btn btn-success btn-flat pull-left m-8 btn-sm mt-10 btn-modal" data-container=".register_details_modal" 
           data-href="{{ action([\App\Http\Controllers\CashRegisterController::class, 'getRegisterDetails'])}}">
@@ -70,25 +70,25 @@
             <strong><i class="fa fa-window-close fa-lg"></i></strong>
           </button>
           @endcan
-        @endif
+        @endif --}}
 
-        @if(in_array('pos_sale', $enabled_modules))
+        {{-- @if(in_array('pos_sale', $enabled_modules))
           @can('sell.create')
             <a href="{{action([\App\Http\Controllers\SellPosController::class, 'create'])}}" title="@lang('sale.pos_sale')" data-toggle="tooltip" data-placement="bottom" class="btn btn-flat pull-left m-8 btn-sm mt-10 btn-success">
               <strong><i class="fa fa-th-large"></i> &nbsp; @lang('sale.pos_sale')</strong>
             </a>
           @endcan
-        @endif
+        @endif --}}
 
         @if(Module::has('Repair'))
           @includeIf('repair::layouts.partials.header')
         @endif
 
-        @can('profit_loss_report.view')
+        {{-- @can('profit_loss_report.view')
           <button type="button" id="view_todays_profit" title="{{ __('home.todays_profit') }}" data-toggle="tooltip" data-placement="bottom" class="btn btn-success btn-flat pull-left m-8 btn-sm mt-10">
             <strong><i class="fas fa-money-bill-alt fa-lg"></i></strong>
           </button>
-        @endcan
+        @endcan --}}
 
         <div class="m-8 pull-left mt-15 hidden-xs" style="color: #fff;"><strong>{{ @format_date('now') }}</strong></div>
 
