@@ -28,7 +28,7 @@
     <div class="container-fluid">
         <div class="row eq-height-row">
             <div class="col-md-5 col-sm-5 hidden-xs left-col eq-height-col" >
-                <div class="left-col-content login-header"> 
+                {{-- <div class="left-col-content login-header"> 
                     <div style="margin-top: 50%;">
                     <a href="/">
                     @if(file_exists(public_path('uploads/logo.png')))
@@ -42,7 +42,7 @@
                         <small>{{config('constants.app_title')}}</small>
                     @endif
                     </div>
-                </div>
+                </div> --}}
             </div>
             <div class="col-md-7 col-sm-7 col-xs-12 right-col eq-height-col">
                 <div class="row">
