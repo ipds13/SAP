@@ -44,122 +44,149 @@
 		@endphp
 	@endif
 
-@foreach($purchases[$key][$variation->id] as $sub_key => $var)
-	@php
+	@foreach($purchases[$key][$variation->id] as $sub_key => $var)
+    @php
+        $purchase_line_id = $var['purchase_line_id'];
+        $qty = $var['quantity'];
+        $purcahse_price = $var['purchase_price'];
+        $row_total = $qty * $purcahse_price;
+        $subtotal += $row_total;
+        $lot_number = $var['lot_number'];
+        $transaction_date = $var['transaction_date'];
+        $purchase_line_note = $var['purchase_line_note'];
+    @endphp
 
-	$purchase_line_id = $var['purchase_line_id'];
+    <tr>
+        <td>
+            {{ $product->name }} 
+            @if($product->type == 'variable') 
+                (<b>{{ $variation->product_variation->name }}</b> : {{ $variation->name }}) 
+            @endif
 
-	$qty = $var['quantity'];
+            @if(!empty($purchase_line_id))
+                {!! Form::hidden('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_line_id]', $purchase_line_id); !!}
+            @endif
+        </td>
+        <td>
+			<div class="input-group">
+				{!! Form::text(
+					'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][quantity]', 
+					@format_quantity($qty), 
+					[
+						'class' => 'form-control input-sm input_number purchase_quantity input_quantity', 
+						'required', 
+						str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') ? '' : 'readonly'
+					]
+				); !!}
+				<span class="input-group-addon">{{ $product->unit->short_name }}</span>
+			</div>
+			@if(!empty($product->second_unit))
+				<br>
+				<span>@lang('lang_v1.quantity_in_second_unit', ['unit' => $product->second_unit->short_name]):</span><br>
+				{!! Form::text(
+					'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][secondary_unit_quantity]', 
+					@format_quantity($var['secondary_unit_quantity']), 
+					[
+						'class' => 'form-control input-sm input_number input_quantity', 
+						'required', 
+						str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') ? '' : 'readonly'
+					]
+				); !!}
+			@endif
+		</td>
+        <td>
+            {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_price]', @num_format($purcahse_price), ['class' => 'form-control input-sm input_number unit_price', 'required']); !!}
+        </td>
+        @if($enable_expiry == 1 && $product->enable_stock == 1)
+            <td>
+                {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][exp_date]', !empty($var['exp_date']) ? @format_date($var['exp_date']) : null, ['class' => 'form-control input-sm os_exp_date', 'readonly']); !!}
+            </td>
+        @endif
+        @if($enable_lot == 1)
+            <td>
+                {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][lot_number]', $lot_number, ['class' => 'form-control input-sm']); !!}
+            </td>
+        @endif
+        <td>
+            <span class="row_subtotal_before_tax">{{@num_format($row_total)}}</span>
+        </td>
+        <td>
+            <div class="input-group date">
+                {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][transaction_date]', $transaction_date, ['class' => 'form-control input-sm os_date', 'readonly']); !!}
+            </div>
+        </td>
+        <td>
+            {!! Form::textarea('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_line_note]', $purchase_line_note, ['class' => 'form-control input-sm', 'rows' => 3]); !!}
+        </td>
+        <td>
+    @php
+        $has_admin_role = auth()->user()->roles->pluck('name')->first(function($role) {
+            return str_contains(strtolower($role), 'admin');
+        });
+    @endphp
 
-	$purcahse_price = $var['purchase_price'];
+    @if($loop->first)
+        @if(!$has_admin_role)
+            <button type="button" class="btn btn-primary btn-xs add_stock_row" 
+                data-sub-key="{{ count($purchases[$key][$variation->id])}}" 
+                data-row-html='<tr>
+                    <td>{{ $product->name }} 
+                    @if($product->type == "variable") (<b>{{ $variation->product_variation->name }}</b> : {{ $variation->name }}) @endif
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input class="form-control input-sm input_number purchase_quantity" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][quantity]" type="text" value="0">
+                            <span class="input-group-addon">{{ $product->unit->short_name }}</span>
+                        </div>
+                    </td>
+                    <td><input class="form-control input-sm input_number unit_price" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_price]" type="text" value="{{@num_format($purcahse_price)}}"></td>
+                    @if($enable_expiry == 1 && $product->enable_stock == 1)
+                    <td><input class="form-control input-sm os_exp_date" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][exp_date]" type="text" readonly></td>
+                    @endif
+                    @if($enable_lot == 1)
+                    <td><input class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][lot_number]" type="text"></td>
+                    @endif
+                    <td><span class="row_subtotal_before_tax">0.00</span></td>
+                    <td><div class="input-group date"><input class="form-control input-sm os_date" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][transaction_date]" type="text" readonly></div></td>
+                    <td><textarea rows="3" class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_line_note]"></textarea></td>
+                    <td>&nbsp;</td></tr>'>REQUEST</button>
+        @else
+            <button type="button" class="btn btn-primary btn-xs add_stock_row" 
+                data-sub-key="{{ count($purchases[$key][$variation->id])}}" 
+                data-row-html='<tr>
+                    <td>{{ $product->name }} @if($product->type == "variable") (<b>{{ $variation->product_variation->name }}</b> : {{ $variation->name }}) @endif</td>
+                    <td>
+                        <div class="input-group">
+                            <input class="form-control input-sm input_number purchase_quantity" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][quantity]" type="text" value="0">
+                            <span class="input-group-addon">{{ $product->unit->short_name }}</span>
+                        </div>
+                    </td>
+                    <td><input class="form-control input-sm input_number unit_price" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_price]" type="text" value="{{@num_format($purcahse_price)}}"></td>
+                    @if($enable_expiry == 1 && $product->enable_stock == 1)
+                    <td><input class="form-control input-sm os_exp_date" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][exp_date]" type="text" readonly></td>
+                    @endif
+                    @if($enable_lot == 1)
+                    <td><input class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][lot_number]" type="text"></td>
+                    @endif
+                    <td><span class="row_subtotal_before_tax">0.00</span></td>
+                    <td><div class="input-group date"><input class="form-control input-sm os_date" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][transaction_date]" type="text" readonly></div></td>
+                    <td><textarea rows="3" class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_line_note]"></textarea></td>
+                    <td>&nbsp;</td></tr>'>
+                <i class="fa fa-plus"></i></button>
+        @endif
 
-	$row_total = $qty * $purcahse_price;
-
-	$subtotal += $row_total;
-	$lot_number = $var['lot_number'];
-	$transaction_date = $var['transaction_date'];
-	$purchase_line_note = $var['purchase_line_note'];
-	@endphp
-
-<tr>
-	<td>
-		{{ $product->name }} @if( $product->type == 'variable' ) (<b>{{ $variation->product_variation->name }}</b> : {{ $variation->name }}) @endif
-
-		@if(!empty($purchase_line_id))
-			{!! Form::hidden('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_line_id]', $purchase_line_id); !!}
-		@endif
-	</td>
-	<td>
-		<div class="input-group">
-		  {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][quantity]', @format_quantity($qty) , ['class' => 'form-control input-sm input_number purchase_quantity input_quantity', 'required']); !!}
-		  <span class="input-group-addon">
-		    {{ $product->unit->short_name }}
-		  </span>
-		</div>
-		@if(!empty($product->second_unit))
-			<br>
-            <span>
-            @lang('lang_v1.quantity_in_second_unit', ['unit' => $product->second_unit->short_name])*:</span><br>
-            {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][secondary_unit_quantity]', @format_quantity($var['secondary_unit_quantity']) , ['class' => 'form-control input-sm input_number input_quantity', 'required']); !!}
-		@endif
-	</td>
-<td>
-	{!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_price]', @num_format($purcahse_price) , ['class' => 'form-control input-sm input_number unit_price', 'required']); !!}
+    @endif
+	@if(isset($var['created_by']) && $var['created_by'] != 1 && $has_admin_role)
+		<button type="button" class="btn btn-success btn-xs btn-approved">
+			Approved
+		</button>
+		<button type="button" class="btn btn-danger btn-xs btn-cancel">
+			Cancel
+		</button>
+	@endif
 </td>
-
-@if($enable_expiry == 1 && $product->enable_stock == 1)
-	<td>
-		{!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][exp_date]', !empty($var['exp_date']) ? @format_date($var['exp_date']) : null , ['class' => 'form-control input-sm os_exp_date', 'readonly']); !!}
-	</td>
-@endif
-
-@if($enable_lot == 1)
-	<td>
-		{!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][lot_number]', $lot_number , ['class' => 'form-control input-sm']); !!}
-	</td>
-@endif
-	<td>
-		<span class="row_subtotal_before_tax">{{@num_format($row_total)}}</span>
-	</td>
-	<td>
-		<div class="input-group date">
-		{!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][transaction_date]', $transaction_date , ['class' => 'form-control input-sm os_date', 'readonly']); !!}
-		</div>
-	</td>
-	<td>
-		{!! Form::textarea('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_line_note]', $purchase_line_note , ['class' => 'form-control input-sm', 'rows' => 3 ]); !!}
-	</td>
-	<td>
-		@if($loop->index == 0)
-			<button type="button" class="btn btn-primary btn-xs add_stock_row" data-sub-key="{{ count($purchases[$key][$variation->id])}}" 
-				data-row-html='<tr>
-					<td>
-						{{ $product->name }} @if( $product->type == "variable" ) (<b>{{ $variation->product_variation->name }}</b> : {{ $variation->name }}) @endif
-					</td>
-					<td>
-					<div class="input-group">
-	              		<input class="form-control input-sm input_number purchase_quantity" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][quantity]" type="text" value="0">
-			              <span class="input-group-addon">
-			                {{ $product->unit->short_name }}
-			              </span>
-	        			</div>
-					</td>
-	<td>
-		<input class="form-control input-sm input_number unit_price" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_price]" type="text" value="{{@num_format($purcahse_price)}}">
-	</td>
-
-	@if($enable_expiry == 1 && $product->enable_stock == 1)
-	<td>
-		<input class="form-control input-sm os_exp_date" required="" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][exp_date]" type="text" readonly>
-	</td>
-	@endif
-
-	@if($enable_lot == 1)
-	<td>
-		<input class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][lot_number]" type="text">
-	</td>
-	@endif
-	<td>
-		<span class="row_subtotal_before_tax">
-			0.00
-		</span>
-	</td>
-	<td>
-		<div class="input-group date">
-			<input class="form-control input-sm os_date" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][transaction_date]" type="text" readonly>
-		</div>
-	</td>
-	<td>
-		<textarea rows="3" class="form-control input-sm" name="stocks[{{$key}}][{{$variation->id}}][__subkey__][purchase_line_note]"></textarea>
-	</td>
-	<td>&nbsp;</td></tr>'
-	><i class="fa fa-plus"></i></button>
-	@else
-		&nbsp;
-	@endif
-			</td>
-			</tr>
-		@endforeach
+    </tr>
+@endforeach
 	@endforeach
 								</tbody>
 								<tfoot>
