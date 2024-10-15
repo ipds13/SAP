@@ -27,26 +27,28 @@
     @endif
     <div class="container-fluid">
         <div class="row eq-height-row">
-            <div class="col-md-5 col-sm-5 hidden-xs left-col eq-height-col" >
-                <div class="left-col-content login-header"> 
-                    <div style="margin-top: 50%;">
+            <div class="col-md-5 col-sm-5 hidden-xs left-col eq-height-col" 
+                style="background-image: url('{{ file_exists(public_path('uploads/drxbackend.jpg')) ? asset('uploads/drxbackend.jpg') : '' }}'); 
+                        background-size: cover; 
+                        background-position: center; 
+                        height: 100vh;">
+                <div class="left-col-content login-header" style="height: 100%; display: flex; justify-content: center; align-items: center;"> 
                     <a href="/">
-                    @if(file_exists(public_path('uploads/logo.png')))
-                        <img src="/uploads/logo.png" class="img-rounded" alt="Logo" width="150">
-                    @else
-                       {{ config('app.name', 'ultimatePOS') }}
-                    @endif 
+                        @if(file_exists(public_path('uploads/drxbackend.jpg')))
+                            <img src="/uploads/drxbackend.jpg" class="img-rounded" alt="Logo" width="800">
+                        @else
+                            {{ config('app.name', 'ultimatePOS') }}
+                        @endif 
                     </a>
                     <br/>
                     @if(!empty(config('constants.app_title')))
                         <small>{{config('constants.app_title')}}</small>
                     @endif
-                    </div>
                 </div>
             </div>
             <div class="col-md-7 col-sm-7 col-xs-12 right-col eq-height-col">
                 <div class="row">
-                <div class="col-md-3 col-xs-4" style="text-align: left;">
+                <!-- <div class="col-md-3 col-xs-4" style="text-align: left;">
                     <select class="form-control input-sm" id="change_lang" style="margin: 10px;">
                     @foreach(config('constants.langs') as $key => $val)
                         <option value="{{$key}}" 
@@ -59,7 +61,7 @@
                         </option>
                     @endforeach
                     </select>
-                </div>
+                </div> -->
                 <div class="col-md-9 col-xs-8" style="text-align: right;padding-top: 10px;">
                     @if(!($request->segment(1) == 'business' && $request->segment(2) == 'register'))
                         <!-- Register Url -->
