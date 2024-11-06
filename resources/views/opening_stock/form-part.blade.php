@@ -68,32 +68,32 @@
             @endif
         </td>
         <td>
-			<div class="input-group">
-				{!! Form::text(
-					'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][quantity]', 
-					@format_quantity($qty), 
-					[
-						'class' => 'form-control input-sm input_number purchase_quantity input_quantity', 
-						'required', 
-						str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') ? '' : 'readonly'
-					]
-				); !!}
-				<span class="input-group-addon">{{ $product->unit->short_name }}</span>
-			</div>
-			@if(!empty($product->second_unit))
-				<br>
-				<span>@lang('lang_v1.quantity_in_second_unit', ['unit' => $product->second_unit->short_name]):</span><br>
-				{!! Form::text(
-					'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][secondary_unit_quantity]', 
-					@format_quantity($var['secondary_unit_quantity']), 
-					[
-						'class' => 'form-control input-sm input_number input_quantity', 
-						'required', 
-						str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') ? '' : 'readonly'
-					]
-				); !!}
-			@endif
-		</td>
+            <div class="input-group">
+                {!! Form::text(
+                    'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][quantity]', 
+                    @format_quantity($qty), 
+                    [
+                        'class' => 'form-control input-sm input_number purchase_quantity input_quantity', 
+                        'required',
+                        (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') || $var['created_by'] != 1) ? '' : 'readonly'
+                    ]
+                ); !!}
+                <span class="input-group-addon">{{ $product->unit->short_name }}</span>
+            </div>
+            @if(!empty($product->second_unit))
+                <br>
+                <span>@lang('lang_v1.quantity_in_second_unit', ['unit' => $product->second_unit->short_name]):</span><br>
+                {!! Form::text(
+                    'stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][secondary_unit_quantity]', 
+                    @format_quantity($var['secondary_unit_quantity']), 
+                    [
+                        'class' => 'form-control input-sm input_number input_quantity', 
+                        'required', 
+                        (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin') || $var['created_by'] != 1) ? '' : 'readonly'
+                    ]
+                ); !!}
+            @endif
+        </td>
         <td>
             {!! Form::text('stocks[' . $key . '][' . $variation->id . '][' . $sub_key . '][purchase_price]', @num_format($purcahse_price), ['class' => 'form-control input-sm input_number unit_price', 'required']); !!}
         </td>

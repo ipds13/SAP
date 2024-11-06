@@ -8,6 +8,8 @@ use App\Currency;
 use App\Media;
 use App\Transaction;
 use App\User;
+use App\Product;
+use App\Category;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\RestaurantUtil;
@@ -461,11 +463,57 @@ class HomeController extends Controller
     public function loadMoreNotifications()
     {
         $notifications = auth()->user()->notifications()->orderBy('created_at', 'DESC')->paginate(10);
+        $product_notifications = [];
 
+        if (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin')) {
+            $business_id = request()->session()->get('user.business_id');
+            $permitted_locations = auth()->user()->permitted_locations();
+            
+            $query = Product::with(['media'])
+                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+                ->join('units', 'products.unit_id', '=', 'units.id')
+                ->leftJoin('categories as c1', 'products.category_id', '=', 'c1.id')
+                ->leftJoin('categories as c2', 'products.sub_category_id', '=', 'c2.id')
+                ->leftJoin('tax_rates', 'products.tax', '=', 'tax_rates.id')
+                ->join('variations as v', 'v.product_id', '=', 'products.id')
+                ->leftJoin('variation_location_details as vld', function ($join) use ($permitted_locations) {
+                    $join->on('vld.variation_id', '=', 'v.id');
+                    if ($permitted_locations != 'all') {
+                        $join->whereIn('vld.location_id', $permitted_locations);
+                    }
+                })
+                ->join('purchase_lines as pl', 'products.id', '=', 'pl.product_id')
+                ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+                ->where('t.created_by', '!=', 1)
+                ->whereNull('v.deleted_at')
+                ->where('products.business_id', $business_id)
+                ->where('products.type', '!=', 'modifier')
+                ->groupBy('products.id');
+
+            $products = $query->select(
+                'products.id',
+                'products.name as product',
+                'brands.name as brand',
+                'c1.name as category'
+            )->get();
+            
+            foreach ($products as $product) {
+                $product_notifications[] = [
+                    'msg' => "Request {$product->product} - {$product->brand} - {$product->category}",
+                    'icon_class' => 'fa fa-product-hunt',
+                    'link' => action([\App\Http\Controllers\ProductController::class, 'index']),
+                    'created_at' => now(),
+                    'show_popup' => false
+                ];
+            }
+        }
+        
         if (request()->input('page') == 1) {
             auth()->user()->unreadNotifications->markAsRead();
         }
+
         $notifications_data = $this->commonUtil->parseNotifications($notifications);
+        $notifications_data = array_merge($notifications_data, $product_notifications);
 
         return view('layouts.partials.notification_list', compact('notifications_data'));
     }
@@ -479,17 +527,56 @@ class HomeController extends Controller
     {
         $unread_notifications = auth()->user()->unreadNotifications;
         $total_unread = $unread_notifications->count();
+        
+        if (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin')) {
+            $business_id = request()->session()->get('user.business_id');
+            $permitted_locations = auth()->user()->permitted_locations();
+            
+            $query = Product::with(['media'])
+                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+                ->join('units', 'products.unit_id', '=', 'units.id')
+                ->leftJoin('categories as c1', 'products.category_id', '=', 'c1.id')
+                ->leftJoin('categories as c2', 'products.sub_category_id', '=', 'c2.id')
+                ->leftJoin('tax_rates', 'products.tax', '=', 'tax_rates.id')
+                ->join('variations as v', 'v.product_id', '=', 'products.id')
+                ->leftJoin('variation_location_details as vld', function ($join) use ($permitted_locations) {
+                    $join->on('vld.variation_id', '=', 'v.id');
+                    if ($permitted_locations != 'all') {
+                        $join->whereIn('vld.location_id', $permitted_locations);
+                    }
+                })
+                ->join('purchase_lines as pl', 'products.id', '=', 'pl.product_id')
+                ->join('transactions as t', 'pl.transaction_id', '=', 't.id')
+                ->where('t.created_by', '!=', 1)
+                ->whereNull('v.deleted_at')
+                ->where('products.business_id', $business_id)
+                ->where('products.type', '!=', 'modifier')
+                ->groupBy('products.id');
+
+            $total_product_notifications = $query->count();
+            $total_unread += $total_product_notifications;
+
+            $products = $query->select(
+                'products.id',
+                'products.name as product',
+                'brands.name as brand',
+                'c1.name as category'
+            )->get();
+        }
 
         $notification_html = '';
         $modal_notifications = [];
         foreach ($unread_notifications as $unread_notification) {
-            if (isset($data['show_popup'])) {
+            if (isset($unread_notification['show_popup'])) {
                 $modal_notifications[] = $unread_notification;
                 $unread_notification->markAsRead();
             }
         }
+
         if (! empty($modal_notifications)) {
-            $notification_html = view('home.notification_modal')->with(['notifications' => $modal_notifications])->render();
+            $notification_html = view('home.notification_modal')
+                ->with(['notifications' => $modal_notifications])
+                ->render();
         }
 
         return [

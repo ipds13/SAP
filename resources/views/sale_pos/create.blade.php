@@ -94,6 +94,39 @@
     @endif
 @stop
 @section('javascript')
+<script>
+	$(document).ready(function() {
+		$('#product_search').on('keyup', function() {
+			var searchValue = $(this).val().toLowerCase();
+			var searchWords = searchValue.split(/\s+/);
+
+			$('#product_list_body .product_list').each(function() {
+				var $productBox = $(this).find('.product_box');
+				var productData = $productBox.attr('title').toLowerCase();
+				var allWordsMatch = searchWords.every(function(word) {
+					return productData.includes(word);
+				});
+
+				if (allWordsMatch) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			});
+
+			if ($('#product_list_body .product_list:visible').length === 0) {
+				$('input#suggestion_page').val(1);
+
+				var category_id = $('#product_category').val() || 'all';
+				var brand_id = $('#product_brand').val() || 'all';
+				var location_id = $('#location_id').val();
+				var is_enabled_stock = $('#is_enabled_stock').val();
+
+				get_product_suggestion_list(category_id, brand_id, location_id, null, is_enabled_stock, null, searchValue);
+			}
+		});
+	});
+</script>
 	<script src="{{ asset('js/pos.js?v=' . $asset_v) }}"></script>
 	<script src="{{ asset('js/printer.js?v=' . $asset_v) }}"></script>
 	<script src="{{ asset('js/product.js?v=' . $asset_v) }}"></script>

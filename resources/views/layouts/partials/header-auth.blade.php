@@ -4,7 +4,7 @@
 
 	<!-- Language changer -->
 	<div class="row">
-		<div class="col-md-6">
+		<!-- <div class="col-md-6">
 			<div class="pull-left mt-10">
 		        <select class="form-control input-sm" id="change_lang">
 		            @foreach(config('constants.langs') as $key => $val)
@@ -19,7 +19,7 @@
 		            @endforeach
 		        </select>
 	    	</div>
-		</div>
+		</div> -->
 		<div class="col-md-6">
 			<div class="pull-right text-white">
 	        	@if(!($request->segment(1) == 'business' && $request->segment(2) == 'register'))

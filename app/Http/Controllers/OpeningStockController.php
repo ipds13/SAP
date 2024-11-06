@@ -195,7 +195,6 @@ class OpeningStockController extends Controller
                                     $purchase_price_inc_tax = $purchase_price + $item_tax;
                                     $qty_remaining = $this->productUtil->num_uf(trim($pl['quantity']));
                                     $secondary_unit_quantity = isset($pl['secondary_unit_quantity']) ? $this->productUtil->num_uf(trim($pl['secondary_unit_quantity'])) : 0;
-    
                                     $exp_date = null;
                                     if (! empty($pl['exp_date'])) {
                                         $exp_date = $this->productUtil->uf_date($pl['exp_date']);
@@ -213,14 +212,25 @@ class OpeningStockController extends Controller
     
                                     if (isset($pl['purchase_line_id'])) {
                                         $purchase_line = PurchaseLine::findOrFail($pl['purchase_line_id']);
+                                        $transaction = Transaction::findOrFail($purchase_line->transaction_id);
                                         //Quantity = remaining + used
                                         $qty_remaining = $qty_remaining + $purchase_line->quantity_used;
     
                                         if ($qty_remaining != 0) {
                                             //Calculate transaction total
+                                            if($transaction->created_by == 1){
+                                                $old_qty = $purchase_line->quantity;
+                                            }else{
+                                                $old_qty = 0;
+                                            }
+                                            
+                                            if (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin')) {
+                                                $this->productUtil->updateProductQuantity($location_id, $product->id, $vid, $qty_remaining, $old_qty, null, false);
+                                            }
+                                        }
+                                        else{
                                             $old_qty = $purchase_line->quantity;
-    
-                                            $this->productUtil->updateProductQuantity($location_id, $product->id, $vid, $qty_remaining, $old_qty, null, false);
+                                            $this->productUtil->decreaseProductQuantity($product->id, $vid, $location_id,$old_qty, $qty_remaining);
                                         }
                                     } else {
                                         if ($qty_remaining != 0) {
@@ -229,8 +239,12 @@ class OpeningStockController extends Controller
                                             $purchase_line = new PurchaseLine();
                                             $purchase_line->product_id = $product->id;
                                             $purchase_line->variation_id = $vid;
-    
-                                            $this->productUtil->updateProductQuantity($location_id, $product->id, $vid, $qty_remaining, 0, null, false);
+
+                                            if (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin')) {
+                                                $this->productUtil->updateProductQuantity($location_id, $product->id, $vid, $qty_remaining, 0, null, false);
+                                            }else{
+                                                
+                                            }
                                         }
                                     }
                                     if (! is_null($purchase_line)) {
@@ -287,7 +301,7 @@ class OpeningStockController extends Controller
     
                                     $transaction->transaction_date = $edit_transaction_data[$transaction->id]['transaction_date'];
                                     $transaction->additional_notes = $edit_transaction_data[$transaction->id]['additional_notes'];
-                                    // dd(str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin'));
+
                                     if (str_contains(strtolower(auth()->user()->roles()->first()->name), 'admin')) {
                                         $transaction->created_by = auth()->user()->id;
                                     }
@@ -340,7 +354,13 @@ class OpeningStockController extends Controller
                                     $delete_purchase_lines = $delete_transaction->purchase_lines;
     
                                     foreach ($delete_purchase_lines as $delete_purchase_line) {
-                                        $this->productUtil->decreaseProductQuantity($product->id, $delete_purchase_line->variation_id, $location_id, $delete_purchase_line->quantity);
+
+                                        if($delete_transaction->created_by == 1){
+                                            $this->productUtil->decreaseProductQuantity($product->id, $delete_purchase_line->variation_id, $location_id, $delete_purchase_line->quantity);
+                                        }else{
+                                            $this->productUtil->decreaseProductQuantity($product->id, $delete_purchase_line->variation_id, $location_id, 0);
+                                        }
+
                                         $delete_purchase_line->delete();
                                     }
     
@@ -398,12 +418,12 @@ class OpeningStockController extends Controller
                             $purchase_lines = PurchaseLine::where('transaction_id', $transaction_id)->get();
                             
                             foreach ($purchase_lines as $line) {
-                                $this->productUtil->decreaseProductQuantity(
-                                    $line->product_id, 
-                                    $line->variation_id, 
-                                    $transaction->location_id, 
-                                    $line->quantity
-                                );
+                                // $this->productUtil->decreaseProductQuantity(
+                                //     $line->product_id, 
+                                //     $line->variation_id, 
+                                //     $transaction->location_id, 
+                                //     $line->quantity
+                                // );
                                 
                                 $line->delete();
                             }

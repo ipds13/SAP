@@ -1441,11 +1441,10 @@ function get_featured_products() {
     }
 }
 
-function get_product_suggestion_list(category_id, brand_id, location_id, url = null, is_enabled_stock = null, repair_model_id = null) {
+function get_product_suggestion_list(category_id, brand_id, location_id, url = null, is_enabled_stock = null, repair_model_id = null, searchValue = '') {
     if($('div#product_list_body').length == 0) {
         return false;
     }
-
     if (url == null) {
         url = '/sells/pos/get-product-suggestion';
     }
@@ -1467,12 +1466,30 @@ function get_product_suggestion_list(category_id, brand_id, location_id, url = n
             location_id: location_id,
             page: page,
             is_enabled_stock: is_enabled_stock,
-            repair_model_id: repair_model_id
+            repair_model_id: repair_model_id,
+            term: searchValue
         },
         dataType: 'html',
         success: function(result) {
-            $('div#product_list_body').append(result);
+            $('div#product_list_body').html(result);
             $('#suggestion_page_loader').fadeOut(700);
+
+            var searchWords = searchValue.toLowerCase().split(/\s+/);
+
+            $('#product_list_body .product_list').each(function() {
+                var $productBox = $(this).find('.product_box');
+                var productData = $productBox.attr('title').toLowerCase();
+
+                var allWordsMatch = searchWords.every(function(word) {
+                    return productData.includes(word);
+                });
+
+                if (allWordsMatch) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
         },
     });
 }

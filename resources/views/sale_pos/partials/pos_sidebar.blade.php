@@ -7,13 +7,10 @@
 	@if(!empty($categories))
 		<div class="col-md-4" id="product_category_div">
 			<select class="select2" id="product_category" style="width:100% !important">
-
 				<option value="all">@lang('lang_v1.all_category')</option>
-
 				@foreach($categories as $category)
 					<option value="{{$category['id']}}">{{$category['name']}}</option>
 				@endforeach
-
 				@foreach($categories as $category)
 					@if(!empty($category['sub_categories']))
 						<optgroup label="{{$category['name']}}">
@@ -32,6 +29,10 @@
 			{!! Form::select('size', $brands, null, ['id' => 'product_brand', 'class' => 'select2', 'name' => null, 'style' => 'width:100% !important']) !!}
 		</div>
 	@endif
+
+	<div class="col-md-4">
+		<input type="text" id="product_search" class="form-control" placeholder="Cari produk...">
+	</div>
 
 	<!-- used in repair : filter for service/product -->
 	<div class="col-md-6 hide" id="product_service_div">
